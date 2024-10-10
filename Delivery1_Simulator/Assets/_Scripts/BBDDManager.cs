@@ -9,17 +9,19 @@ public class BBDDManager : MonoBehaviour
 {
     public static BBDDManager Singleton;
 
+    public uint lastPlayerID;
+    public uint lastSessionID;
+
     private void Awake()
     {
         Singleton = this;
     }
 
-    public static void UploadPlayer(string name, string country, int age, float gender, DateTime date)
+    public static void UploadPlayer(string name, string country, int age, float gender, DateTime date, Action<uint> callback)
     {
-        Singleton.StartCoroutine(Singleton._UploadPlayer(name,country,age,gender,date));
+        Singleton.StartCoroutine(Singleton._UploadPlayer(name,country,age,gender,date, callback));
     }
-
-    IEnumerator _UploadPlayer(string name, string country, int age, float gender, DateTime date)
+    IEnumerator _UploadPlayer(string name, string country, int age, float gender, DateTime date, Action<uint> callback)
     {
         WWWForm form = new WWWForm();
         form.AddField("playername", name);
@@ -28,7 +30,7 @@ public class BBDDManager : MonoBehaviour
         form.AddField("gender", gender.ToString(CultureInfo.InvariantCulture));
         form.AddField("date", date.ToString("yyyy-MM-dd HH:mm:ss"));
 
-        UnityWebRequest www = UnityWebRequest.Post("https://citmalumnes.upc.es/~ethanmp/DBUploader.php", form);
+        UnityWebRequest www = UnityWebRequest.Post("https://citmalumnes.upc.es/~ethanmp/playerUploader.php", form);
         yield return www.SendWebRequest();
 
         if (www.result != UnityWebRequest.Result.Success)
@@ -37,8 +39,38 @@ public class BBDDManager : MonoBehaviour
         }
         else
         {
-            Debug.Log("Form upload complete!");
-            Debug.Log(www.downloadHandler.text);
+            //Debug.Log("Form upload complete!");
+            //Debug.Log(www.downloadHandler.text);
+
+            lastPlayerID = uint.Parse(www.downloadHandler.text);
+            callback.Invoke(lastPlayerID);
+        }
+    }
+
+    public static void UploadNewSession(uint playerID, DateTime time, Action<uint> callback)
+    {
+        Singleton.StartCoroutine(Singleton._UploadNewSession(playerID, time, callback));
+    }
+    IEnumerator _UploadNewSession(uint playerID, DateTime time, Action<uint> callback)
+    {
+        WWWForm form = new WWWForm();
+        form.AddField("playerID", (int)playerID);
+        form.AddField("loginDate", time.ToString("yyyy-MM-dd HH:mm:ss"));
+
+        UnityWebRequest www = UnityWebRequest.Post("https://citmalumnes.upc.es/~ethanmp/newSessionUploader.php", form);
+        yield return www.SendWebRequest();
+
+        if (www.result != UnityWebRequest.Result.Success)
+        {
+            Debug.Log(www.error);
+        }
+        else
+        {
+            //Debug.Log("Form upload complete!");
+            //Debug.Log(www.downloadHandler.text);
+
+            lastSessionID = uint.Parse(www.downloadHandler.text);
+            callback.Invoke(lastSessionID);
         }
     }
 }

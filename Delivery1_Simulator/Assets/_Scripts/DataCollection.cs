@@ -14,35 +14,23 @@ public class DataCollection : MonoBehaviour
 
     void SendNewPlayer(string name, string country, int age, float gender, DateTime date)
     {
-        //Send info to server
-
-        BBDDManager.UploadPlayer(name, country, age, gender, date);
-
-        uint playerID = 42; //received from server
-        StartCoroutine(SendNewPlanerDelay(playerID));
-        
-    }
-
-    IEnumerator SendNewPlanerDelay(uint playerID)
-    {
-        yield return null;
-        CallbackEvents.OnAddPlayerCallback.Invoke(playerID);
+        BBDDManager.UploadPlayer(name, country, age, gender, date, CallbackEvents.OnAddPlayerCallback);
     }
 
     void SendNewSession(DateTime time, uint playerID)
     {
-        //Send info to server
+        BBDDManager.UploadNewSession(playerID, time, CallbackEvents.OnNewSessionCallback);
         Debug.Log("New session with player ID: " + playerID);
 
-        uint sessionID = 4; //received from server
+        //uint sessionID = 4; //received from server
 
-        StartCoroutine(SendNewSessionDelay(sessionID));
+        //StartCoroutine(SendNewSessionDelay(sessionID));
     }
-    IEnumerator SendNewSessionDelay(uint sessionID)
-    {
-        yield return null;
-        CallbackEvents.OnNewSessionCallback.Invoke(sessionID);
-    }
+    //IEnumerator SendNewSessionDelay(uint sessionID)
+    //{
+    //    yield return null;
+    //    CallbackEvents.OnNewSessionCallback.Invoke(sessionID);
+    //}
 
 
 
