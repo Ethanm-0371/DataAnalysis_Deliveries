@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
+using System.Globalization;
 
 public class BBDDManager : MonoBehaviour
 {
@@ -21,11 +22,11 @@ public class BBDDManager : MonoBehaviour
     IEnumerator _UploadPlayer(string name, string country, int age, float gender, DateTime date)
     {
         WWWForm form = new WWWForm();
-        form.AddField("name", name);
+        form.AddField("playername", name);
         form.AddField("country", country);
         form.AddField("age", age);
-        form.AddField("gender", gender.ToString());
-        form.AddField("date", date.ToString());
+        form.AddField("gender", gender.ToString(CultureInfo.InvariantCulture));
+        form.AddField("date", date.ToString("yyyy-MM-dd HH:mm:ss"));
 
         UnityWebRequest www = UnityWebRequest.Post("https://citmalumnes.upc.es/~ethanmp/DBUploader.php", form);
         yield return www.SendWebRequest();

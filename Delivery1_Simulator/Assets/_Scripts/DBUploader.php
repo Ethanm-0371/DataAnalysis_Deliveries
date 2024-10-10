@@ -2,8 +2,10 @@
 $servername = "localhost";
 $username = "ethanmp";
 $database = "ethanmp";
+
 // Create connection
 $conn = new mysqli( $servername,  $username,  $password, $database);
+
 // Check connection
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
@@ -11,13 +13,14 @@ if ($conn->connect_error) {
 echo "Connected successfully";
 
 
-$name = $_POST["name"];
+$playername = $_POST["playername"];
+$escapedName = str_replace("'", "''", $playername);
 $country = $_POST["country"];
 $age = $_POST["age"];
 $gender = $_POST["gender"];
-$date = $_POST["date"];
+$installationdate = $_POST["date"];
 
-$insertquery = "INSERT INTO player (name, country, age, gender) VALUES ('$name', '$country', '$age', '$gender')";
+$insertquery = "INSERT INTO player (playername, country, age, gender, installationdate) VALUES ('$escapedName', '$country', '$age', '$gender', '$installationdate')";
 
 
 if ($conn->query($insertquery) === TRUE){
