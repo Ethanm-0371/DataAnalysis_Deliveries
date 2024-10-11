@@ -21,26 +21,11 @@ public class DataCollection : MonoBehaviour
     {
         BBDDManager.UploadNewSession(playerID, time, CallbackEvents.OnNewSessionCallback);
         Debug.Log("New session with player ID: " + playerID);
-
-        //uint sessionID = 4; //received from server
-
-        //StartCoroutine(SendNewSessionDelay(sessionID));
     }
-    //IEnumerator SendNewSessionDelay(uint sessionID)
-    //{
-    //    yield return null;
-    //    CallbackEvents.OnNewSessionCallback.Invoke(sessionID);
-    //}
-
-
 
     void SendEndSession(DateTime time, uint sessionID)
     {
-        //Send info to server
-
-        uint playerID = 45; //received from server
-        StartCoroutine(SendEndSessionDelay(playerID));
-
+        BBDDManager.UploadEndSession(sessionID, time, CallbackEvents.OnEndSessionCallback);
     }
     IEnumerator SendEndSessionDelay(uint sessionID)
     {

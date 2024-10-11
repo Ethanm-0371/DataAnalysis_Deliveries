@@ -73,4 +73,30 @@ public class BBDDManager : MonoBehaviour
             callback.Invoke(lastSessionID);
         }
     }
+
+    public static void UploadEndSession(uint sessionID, DateTime time, Action<uint> callback)
+    {
+        Singleton.StartCoroutine(Singleton._UploadEndSession(sessionID, time, callback));
+    }
+    IEnumerator _UploadEndSession(uint sessionID, DateTime time, Action<uint> callback)
+    {
+        WWWForm form = new WWWForm();
+        form.AddField("sessionID", (int)sessionID);
+        form.AddField("logoutDate", time.ToString("yyyy-MM-dd HH:mm:ss"));
+
+        UnityWebRequest www = UnityWebRequest.Post("https://citmalumnes.upc.es/~ethanmp/endSessionUploader.php", form);
+        yield return www.SendWebRequest();
+
+        if (www.result != UnityWebRequest.Result.Success)
+        {
+            Debug.Log(www.error);
+        }
+        else
+        {
+            //Debug.Log("Form upload complete!");
+            //Debug.Log(www.downloadHandler.text);
+
+            callback.Invoke(lastPlayerID);
+        }
+    }
 }
