@@ -39,9 +39,6 @@ public class BBDDManager : MonoBehaviour
         }
         else
         {
-            //Debug.Log("Form upload complete!");
-            //Debug.Log(www.downloadHandler.text);
-
             lastPlayerID = uint.Parse(www.downloadHandler.text);
             callback.Invoke(lastPlayerID);
         }
@@ -66,9 +63,6 @@ public class BBDDManager : MonoBehaviour
         }
         else
         {
-            //Debug.Log("Form upload complete!");
-            //Debug.Log(www.downloadHandler.text);
-
             lastSessionID = uint.Parse(www.downloadHandler.text);
             callback.Invoke(lastSessionID);
         }
@@ -93,10 +87,31 @@ public class BBDDManager : MonoBehaviour
         }
         else
         {
-            //Debug.Log("Form upload complete!");
-            //Debug.Log(www.downloadHandler.text);
-
             callback.Invoke(lastPlayerID);
+        }
+    }
+
+    public static void UploadPurchase(uint itemID, DateTime time, uint sessionID, Action<uint> callback)
+    {
+        Singleton.StartCoroutine(Singleton._UploadPurchase(itemID, time, sessionID, callback));
+    }
+    IEnumerator _UploadPurchase(uint itemID, DateTime time, uint sessionID, Action<uint> callback)
+    {
+        WWWForm form = new WWWForm();
+        form.AddField("itemID", (int)itemID);
+        form.AddField("purchaseDate", time.ToString("yyyy-MM-dd HH:mm:ss"));
+        form.AddField("sessionID", (int)sessionID);
+
+        UnityWebRequest www = UnityWebRequest.Post("https://citmalumnes.upc.es/~ethanmp/purchaseUploader.php", form);
+        yield return www.SendWebRequest();
+
+        if (www.result != UnityWebRequest.Result.Success)
+        {
+            Debug.Log(www.error);
+        }
+        else
+        {
+            callback.Invoke(sessionID);
         }
     }
 }

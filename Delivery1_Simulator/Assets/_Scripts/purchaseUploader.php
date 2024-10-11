@@ -11,21 +11,18 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-$playername = $_POST["playername"];
-$escapedName = str_replace("'", "''", $playername);
-$country = $_POST["country"];
-$age = $_POST["age"];
-$gender = $_POST["gender"];
-$installationdate = $_POST["date"];
+$itemid = $_POST["itemID"];
+$purchasedate = $_POST["purchaseDate"];
+$sessionid = $_POST["sessionID"];
 
-$insertquery = "INSERT INTO player (playername, country, age, gender, installationdate) VALUES ('$escapedName', '$country', '$age', '$gender', '$installationdate')";
+$insertquery = "INSERT INTO purchases (itemID, purchaseDate, sessionID) VALUES ('$itemid', '$purchasedate', '$sessionid')";
 
 
 if ($conn->query($insertquery) === TRUE){
 
     $lastID = $conn->insert_id;
     echo $lastID;
-    
+
 } else {
     echo "Error: " . $insertquery . "<br>" . $conn->error;
 }

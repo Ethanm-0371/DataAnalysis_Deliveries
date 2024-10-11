@@ -27,24 +27,9 @@ public class DataCollection : MonoBehaviour
     {
         BBDDManager.UploadEndSession(sessionID, time, CallbackEvents.OnEndSessionCallback);
     }
-    IEnumerator SendEndSessionDelay(uint sessionID)
-    {
-        yield return null;
-        CallbackEvents.OnEndSessionCallback.Invoke(sessionID);
-    }
 
     void SendItemBought(int itemID, DateTime time, uint sessionID)
     {
-        //Send info to server
-
-        //no need? sessionID = 7; //received from server
-        StartCoroutine(SendItemBoughtDelay(2));
-    }
-
-    IEnumerator SendItemBoughtDelay(uint sessionID)
-    {
-        yield return null;
-            CallbackEvents.OnItemBuyCallback.Invoke(sessionID);
-        
+        BBDDManager.UploadPurchase((uint)itemID, time, sessionID, CallbackEvents.OnItemBuyCallback);
     }
 }
