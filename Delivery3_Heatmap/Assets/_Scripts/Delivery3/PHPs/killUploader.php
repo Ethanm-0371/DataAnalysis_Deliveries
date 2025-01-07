@@ -11,11 +11,11 @@ $posZ = $_POST["z"];
 
 $updatequery = "INSERT INTO kills (x, y, z) VALUES ('$posX', '$posY', '$posZ')";
 
-
 if ($conn->query($updatequery) === TRUE){
 
-    $lastID = $conn->insert_id;
-    echo $lastID;
+    // $lastID = $conn->insert_id;
+    // echo $lastID;
+    echo "Uploaded Kill: " . $posX . " " . $posY . " " . $posZ;
 
 } else {
     echo "Error: " . $updatequery . "<br>" . $conn->error;

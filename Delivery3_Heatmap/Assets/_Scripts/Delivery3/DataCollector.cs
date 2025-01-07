@@ -4,14 +4,12 @@ using System.Globalization;
 using UnityEngine;
 using UnityEngine.Networking;
 using Gamekit3D;
+using Gamekit3D.Message;
 
-public class DataCollector : MonoBehaviour
+public class DataCollector : MonoBehaviour, IMessageReceiver
 {
     [SerializeField] float sendFrequency = 3.0f;
     [SerializeField] float attackDelay = 1.0f;
-    [SerializeField] float hitDelay = 1.0f;
-    [SerializeField] float deathDelay = 1.0f;
-    [SerializeField] float killDelay = 1.0f;
 
     [SerializeField] GameObject player;
 
@@ -19,19 +17,51 @@ public class DataCollector : MonoBehaviour
     {
         StartCoroutine(SendPlayerPos());
         StartCoroutine(SendAttackPos());
-        StartCoroutine(SendHitPos());
-        StartCoroutine(SendDeathPos());
-        StartCoroutine(SendKillPos());
+        AddEnemyReceiver();
+    }
+
+    void AddEnemyReceiver()
+    {
+        Damageable[] dmgGOs = FindObjectsOfType<Damageable>();
+
+        foreach (Damageable GO in dmgGOs)
+        {
+            if (GO.name.Equals("Spitter") || GO.name.Equals("Chomper"))
+            {
+                GO.onDamageMessageReceivers.Add(this);
+            }
+        }
+    }
+
+    public void OnReceiveMessage(MessageType type, object sender, object msg)
+    {
+        switch (type)
+        {
+            case MessageType.DAMAGED:
+                
+                if (sender.ToString().Contains("Ellen")) SendHitPos();
+
+                break;
+            case MessageType.DEAD:
+                if (sender.ToString().Contains("Ellen")) SendDeathPos();
+                else
+                {
+                    Damageable GO = (Damageable) sender;
+                    SendKillPos(GO.transform.position);
+                }
+
+                break;
+        }
     }
 
     IEnumerator SendPlayerPos()
     {
-        while(true)
+        while (true)
         {
             yield return new WaitForSeconds(sendFrequency);
 
             Debug.Log("Position: " + player.transform.position);
-            StartCoroutine(UploadPos(player.transform.position));
+            StartCoroutine(UploadData(player.transform.position, "positionUploader"));
         }
     }
 
@@ -44,61 +74,36 @@ public class DataCollector : MonoBehaviour
             if (PlayerInput.Instance.Attack)
             {
                 Debug.Log("Attack Position: " + player.transform.position);
-                StartCoroutine(UploadAttack(player.transform.position));
+                StartCoroutine(UploadData(player.transform.position, "attackUploader"));
                 yield return new WaitForSeconds(attackDelay);
             }
         }
     }
 
-    IEnumerator SendHitPos()
+    void SendHitPos()
     {
-        while (true)
-        {
-            yield return null;
-
-            if (PlayerController.instance.hurtAudioPlayer.audioSource.isPlaying)
-            {
-                Debug.Log("Death Position: " + player.transform.position);
-                StartCoroutine(UploadHit(player.transform.position));
-                yield return new WaitForSeconds(hitDelay);
-            }
-
-        }
+        Debug.Log("Hit Position: " + player.transform.position);
+        StartCoroutine(UploadData(player.transform.position, "hitUploader"));
     }
 
-    IEnumerator SendDeathPos()
+    void SendDeathPos()
     {
-        while (true)
-        {
-            yield return null;
 
-            if (PlayerController.instance.emoteDeathPlayer.audioSource.isPlaying)
-            {
-                Debug.Log("Death Position: " + player.transform.position);
-                StartCoroutine(UploadDeath(player.transform.position));
-                yield return new WaitForSeconds(deathDelay);
-            }
-           
+        if (PlayerController.instance.emoteDeathPlayer.audioSource.isPlaying)
+        {
+            Debug.Log("Death Position: " + player.transform.position);
+            StartCoroutine(UploadData(player.transform.position, "deathUploader"));
         }
+
     }
 
-    IEnumerator SendKillPos()
+    void SendKillPos(Vector3 enemyPosition)
     {
-        while (true)
-        {
-            yield return null;
-
-            if (PlayerController.instance.emoteDeathPlayer.audioSource.isPlaying)
-            {
-                Debug.Log("Kill Position: " + player.transform.position);
-                StartCoroutine(UploadKill(player.transform.position));
-                yield return new WaitForSeconds(killDelay);
-            }
-
-        }
+        Debug.Log("Kill Position: " + enemyPosition);
+        StartCoroutine(UploadData(enemyPosition, "killUploader"));
     }
 
-    IEnumerator UploadPos(Vector3 position)
+    IEnumerator UploadData(Vector3 position, string fileName)
     {
         WWWForm form = new WWWForm();
         form.AddField("x", position.x.ToString(CultureInfo.InvariantCulture));
@@ -106,7 +111,7 @@ public class DataCollector : MonoBehaviour
         form.AddField("z", position.z.ToString(CultureInfo.InvariantCulture));
 
 
-        UnityWebRequest www = UnityWebRequest.Post("https://citmalumnes.upc.es/~jonathancl1/positionUploader.php", form);
+        UnityWebRequest www = UnityWebRequest.Post("https://citmalumnes.upc.es/~jonathancl1/" + fileName + ".php", form);
         yield return www.SendWebRequest();
 
         if (www.result != UnityWebRequest.Result.Success)
@@ -115,99 +120,7 @@ public class DataCollector : MonoBehaviour
         }
         else
         {
-            Debug.Log($"Sent Position: {www.downloadHandler.text}");
-            //lastPlayerID = uint.Parse(www.downloadHandler.text);
-            //callback.Invoke(lastPlayerID);
-        }
-    }
-
-    IEnumerator UploadAttack(Vector3 position)
-    {
-        WWWForm form = new WWWForm();
-        form.AddField("x", position.x.ToString(CultureInfo.InvariantCulture));
-        form.AddField("y", position.y.ToString(CultureInfo.InvariantCulture));
-        form.AddField("z", position.z.ToString(CultureInfo.InvariantCulture));
-
-
-        UnityWebRequest www = UnityWebRequest.Post("https://citmalumnes.upc.es/~jonathancl1/attackUploader.php", form);
-        yield return www.SendWebRequest();
-
-        if (www.result != UnityWebRequest.Result.Success)
-        {
-            Debug.Log(www.error);
-        }
-        else
-        {
-            Debug.Log($"Sent Attack: {www.downloadHandler.text}");
-            //lastPlayerID = uint.Parse(www.downloadHandler.text);
-            //callback.Invoke(lastPlayerID);
-        }
-    }
-
-    IEnumerator UploadHit(Vector3 position)
-    {
-        WWWForm form = new WWWForm();
-        form.AddField("x", position.x.ToString(CultureInfo.InvariantCulture));
-        form.AddField("y", position.y.ToString(CultureInfo.InvariantCulture));
-        form.AddField("z", position.z.ToString(CultureInfo.InvariantCulture));
-
-
-        UnityWebRequest www = UnityWebRequest.Post("https://citmalumnes.upc.es/~jonathancl1/hitUploader.php", form);
-        yield return www.SendWebRequest();
-
-        if (www.result != UnityWebRequest.Result.Success)
-        {
-            Debug.Log(www.error);
-        }
-        else
-        {
-            Debug.Log($"Sent Hurt: {www.downloadHandler.text}");
-            //lastPlayerID = uint.Parse(www.downloadHandler.text);
-            //callback.Invoke(lastPlayerID);
-        }
-    }
-
-    IEnumerator UploadDeath(Vector3 position)
-    {
-        WWWForm form = new WWWForm();
-        form.AddField("x", position.x.ToString(CultureInfo.InvariantCulture));
-        form.AddField("y", position.y.ToString(CultureInfo.InvariantCulture));
-        form.AddField("z", position.z.ToString(CultureInfo.InvariantCulture));
-
-
-        UnityWebRequest www = UnityWebRequest.Post("https://citmalumnes.upc.es/~jonathancl1/deathUploader.php", form);
-        yield return www.SendWebRequest();
-
-        if (www.result != UnityWebRequest.Result.Success)
-        {
-            Debug.Log(www.error);
-        }
-        else
-        {
-            Debug.Log($"Sent Death: {www.downloadHandler.text}");
-            //lastPlayerID = uint.Parse(www.downloadHandler.text);
-            //callback.Invoke(lastPlayerID);
-        }
-    }
-
-    IEnumerator UploadKill(Vector3 position)
-    {
-        WWWForm form = new WWWForm();
-        form.AddField("x", position.x.ToString(CultureInfo.InvariantCulture));
-        form.AddField("y", position.y.ToString(CultureInfo.InvariantCulture));
-        form.AddField("z", position.z.ToString(CultureInfo.InvariantCulture));
-
-
-        UnityWebRequest www = UnityWebRequest.Post("https://citmalumnes.upc.es/~jonathancl1/killUploader.php", form);
-        yield return www.SendWebRequest();
-
-        if (www.result != UnityWebRequest.Result.Success)
-        {
-            Debug.Log(www.error);
-        }
-        else
-        {
-            Debug.Log($"Sent Kill: {www.downloadHandler.text}");
+            Debug.Log($"Sent Data: {www.downloadHandler.text}");
             //lastPlayerID = uint.Parse(www.downloadHandler.text);
             //callback.Invoke(lastPlayerID);
         }
