@@ -5,7 +5,7 @@
 
 include ("D3DBConnection.php");
 
-$updatequery = "SELECT x,y,z FROM position";
+$updatequery = "SELECT x,y,z FROM attacks";
 
 $queryResult = $conn->query($updatequery);
 
