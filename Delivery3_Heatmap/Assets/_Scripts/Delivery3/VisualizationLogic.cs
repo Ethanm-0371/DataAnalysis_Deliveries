@@ -1,7 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -9,33 +9,50 @@ using UnityEngine.Networking;
 
 public class VisualizationLogic : MonoBehaviour
 {
+    public bool showPosData = false;
+    public bool showTreatedData = false;
+    public bool showRawData = false;
+
     List<Vector3> posData = new List<Vector3>();
     List<Vector3> attackData = new List<Vector3>();
     List<Vector3> deathData = new List<Vector3>();
     List<Vector3> hitData = new List<Vector3>();
     List<Vector3> killData = new List<Vector3>();
 
-    public void ShowPositionData()
+    Dictionary<Vector3Int, int> positionsDictionary = new Dictionary<Vector3Int, int>();
+
+    public float cellSize = 1f;
+
+    public Gradient colorGradient = new Gradient();
+
+    #region Data retrieval
+
+    public void UpdateAllData()
+    {
+        StartCoroutine(RetrieveData("positionDownloader", posData));
+        StartCoroutine(RetrieveData("attackDownloader", attackData));
+        StartCoroutine(RetrieveData("deathDownloader", deathData));
+        StartCoroutine(RetrieveData("hitDownloader", hitData));
+        StartCoroutine(RetrieveData("killDownloader", killData));
+    }
+
+    public void UpdatePositionData()
     {
         StartCoroutine(RetrieveData("positionDownloader", posData));
     }
-
-    public void ShowAttackData()
+    public void UpdateAttackData()
     {
         StartCoroutine(RetrieveData("attackDownloader", attackData));
     }
-
-    public void ShowDeathData()
+    public void UpdateDeathData()
     {
         StartCoroutine(RetrieveData("deathDownloader", deathData));
     }
-
-    public void ShowHitData()
+    public void UpdateHitData()
     {
         StartCoroutine(RetrieveData("hitDownloader", hitData));
     }
-
-    public void ShowKillData()
+    public void UpdateKillData()
     {
         StartCoroutine(RetrieveData("killDownloader", killData));
     }
@@ -43,9 +60,6 @@ public class VisualizationLogic : MonoBehaviour
     public IEnumerator RetrieveData(string fileName, List<Vector3> data)
     {
         WWWForm form = new WWWForm();
-        //form.AddField("x", position.x.ToString(CultureInfo.InvariantCulture));
-        //form.AddField("y", position.y.ToString(CultureInfo.InvariantCulture));
-        //form.AddField("z", position.z.ToString(CultureInfo.InvariantCulture));
 
         UnityWebRequest www = UnityWebRequest.Post("https://citmalumnes.upc.es/~jonathancl1/" + fileName + ".php", form);
         yield return www.SendWebRequest();
@@ -56,10 +70,7 @@ public class VisualizationLogic : MonoBehaviour
         }
         else
         {
-            Debug.Log($"Succcess: {www.downloadHandler.text}");
-            //lastPlayerID = uint.Parse(www.downloadHandler.text);
-            //callback.Invoke(lastPlayerID);
-
+            //Debug.Log($"Succcess: {www.downloadHandler.text}");
             StoreData(www.downloadHandler.text, data);
         }
         yield return null;
@@ -68,7 +79,7 @@ public class VisualizationLogic : MonoBehaviour
     private void StoreData(string json, List<Vector3> data)
     {
         data.Clear();
-        
+
         string formattedJson = json.TrimStart('[').TrimEnd(']');
 
         string[] jsonOBJs = formattedJson.Split(new[] { "}," }, StringSplitOptions.None);
@@ -90,6 +101,78 @@ public class VisualizationLogic : MonoBehaviour
                 Debug.LogError($"Failed: {jsonOBJ}\nException: {e.Message}");
             }
         }
+    }
+
+    #endregion
+
+    private void OnDrawGizmos()
+    {
+        if (showPosData)
+        {
+            if (showTreatedData)
+            {
+                positionsDictionary.Clear();
+
+                foreach (var pos in posData)
+                {
+                    var gridPos = GetGridPos(pos);
+
+                    if (positionsDictionary.ContainsKey(gridPos))
+                    {
+                        positionsDictionary[gridPos]++;
+                    }
+                    else
+                    {
+                        positionsDictionary.Add(gridPos, 1);
+                    }
+                }
+
+                foreach (var item in positionsDictionary)
+                {
+                    Gizmos.color = GetColor(item.Value);
+
+                    if (cellSize > .5f)
+                        Gizmos.DrawCube(GetWorldPos(item.Key), Vector3.one * cellSize);
+                }
+            }
+
+            if (showRawData)
+            {
+                Gizmos.color = Color.white;
+
+                foreach (var item in posData)
+                {
+                    Gizmos.DrawSphere(item, 0.1f);
+                }
+            }
+        }
+    }
+
+    Vector3Int GetGridPos(Vector3 worldPosition)
+    {
+        Vector3 relativePosition = worldPosition;
+
+        Vector3Int gridIndex = new Vector3Int(
+            Mathf.FloorToInt(relativePosition.x / cellSize),
+            Mathf.FloorToInt(relativePosition.y / cellSize),
+            Mathf.FloorToInt(relativePosition.z / cellSize)
+        );
+
+        return gridIndex;
+    }
+
+    Vector3 GetWorldPos(Vector3Int gridPos)
+    {
+        return new Vector3(
+            gridPos.x * cellSize + cellSize / 2f,
+            gridPos.y * cellSize + cellSize / 2f,
+            gridPos.z * cellSize + cellSize / 2f
+        );
+    }
+
+    Color GetColor(int instances)
+    {
+        return colorGradient.Evaluate((float)instances / positionsDictionary.Values.Max());
     }
 }
 #endif

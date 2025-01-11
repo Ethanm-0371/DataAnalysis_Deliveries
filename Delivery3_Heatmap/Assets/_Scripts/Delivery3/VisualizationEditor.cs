@@ -7,6 +7,7 @@ using UnityEditor;
 public class VisualizationEditor : Editor
 {
     VisualizationLogic myTarget;
+    bool showButtonsDropdown = false;
 
     public override void OnInspectorGUI()
     {
@@ -24,31 +25,67 @@ public class VisualizationEditor : Editor
 
         EditorGUILayout.LabelField("Buttons", EditorStyles.boldLabel);
 
-        //Print one
-        if (GUILayout.Button("Retrieve position data"))
+        if (GUILayout.Button("Update Data"))
         {
-            myTarget.ShowPositionData();
+            myTarget.UpdatePositionData();
         }
 
-        if (GUILayout.Button("Retrieve attacks data"))
+        showButtonsDropdown = EditorGUILayout.Foldout(showButtonsDropdown, "Update individual fields");
+
+        if (showButtonsDropdown)
         {
-            myTarget.ShowAttackData();
+            //Print one
+            if (GUILayout.Button("Retrieve position data"))
+            {
+                myTarget.UpdatePositionData();
+            }
+
+            if (GUILayout.Button("Retrieve attacks data"))
+            {
+                myTarget.UpdateAttackData();
+            }
+
+            if (GUILayout.Button("Retrieve deaths data"))
+            {
+                myTarget.UpdateDeathData();
+            }
+
+            if (GUILayout.Button("Retrieve hits data"))
+            {
+                myTarget.UpdateHitData();
+            }
+
+            if (GUILayout.Button("Retrieve kills data"))
+            {
+                myTarget.UpdateKillData();
+            }
         }
 
-        if (GUILayout.Button("Retrieve deaths data"))
+        EditorGUI.BeginChangeCheck();
+
+        bool targetValue1 = EditorGUILayout.Toggle("Show Position Data", myTarget.showPosData);
+        bool targetValue2 = EditorGUILayout.Toggle("Show Treated Data", myTarget.showTreatedData);
+        bool targetValue3 = EditorGUILayout.Toggle("Show Raw Data", myTarget.showRawData);
+
+        if (EditorGUI.EndChangeCheck())
         {
-            myTarget.ShowDeathData();
+            if (myTarget.showPosData != targetValue1)
+            {
+                myTarget.showPosData = targetValue1;
+            }
+            else if (myTarget.showTreatedData != targetValue2)
+            {
+                myTarget.showTreatedData = targetValue2;
+            }
+            else if (myTarget.showRawData != targetValue3)
+            {
+                myTarget.showRawData = targetValue3;
+            }
         }
 
-        if (GUILayout.Button("Retrieve hits data"))
-        {
-            myTarget.ShowHitData();
-        }
+        myTarget.cellSize = EditorGUILayout.FloatField("Cell Size", myTarget.cellSize);
 
-        if (GUILayout.Button("Retrieve kills data"))
-        {
-            myTarget.ShowKillData();
-        }
+        myTarget.colorGradient = EditorGUILayout.GradientField("Gradient", myTarget.colorGradient);
     }
 }
 
