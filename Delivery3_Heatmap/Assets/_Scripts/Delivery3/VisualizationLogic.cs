@@ -9,11 +9,11 @@ using UnityEngine.Networking;
 
 public class VisualizationLogic : MonoBehaviour
 {
-    List<Vector3> posData;
-    List<Vector3> attackData;
-    List<Vector3> deathData;
-    List<Vector3> hitData;
-    List<Vector3> killData;
+    List<Vector3> posData = new List<Vector3>();
+    List<Vector3> attackData = new List<Vector3>();
+    List<Vector3> deathData = new List<Vector3>();
+    List<Vector3> hitData = new List<Vector3>();
+    List<Vector3> killData = new List<Vector3>();
 
     public void ShowPositionData()
     {
