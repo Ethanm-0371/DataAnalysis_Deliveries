@@ -38,15 +38,18 @@ public class DataCollector : MonoBehaviour, IMessageReceiver
         switch (type)
         {
             case MessageType.DAMAGED:
-                
+
                 if (sender.ToString().Contains("Ellen")) SendHitPos();
 
                 break;
             case MessageType.DEAD:
-                if (sender.ToString().Contains("Ellen")) SendDeathPos();
+                if (sender.ToString().Contains("Ellen"))
+                {
+                    SendDeathPos();
+                }
                 else
                 {
-                    Damageable GO = (Damageable) sender;
+                    Damageable GO = (Damageable)sender;
                     SendKillPos(GO.transform.position);
                 }
 
@@ -89,11 +92,8 @@ public class DataCollector : MonoBehaviour, IMessageReceiver
     void SendDeathPos()
     {
 
-        if (PlayerController.instance.emoteDeathPlayer.audioSource.isPlaying)
-        {
-            Debug.Log("Death Position: " + player.transform.position);
-            StartCoroutine(UploadData(player.transform.position, "deathUploader"));
-        }
+        Debug.Log("Death Position: " + player.transform.position);
+        StartCoroutine(UploadData(player.transform.position, "deathUploader"));
 
     }
 
