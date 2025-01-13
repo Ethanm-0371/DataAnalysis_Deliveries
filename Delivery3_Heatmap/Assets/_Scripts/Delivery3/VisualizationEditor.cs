@@ -20,28 +20,17 @@ public class VisualizationEditor : Editor
 
         GUILayout.Space(10);
 
-        if (myTarget.tables != null)
-        {
-            if (GUILayout.Button("Update all data", GUILayout.Height(30))) { myTarget.UpdateAllData(); }
-        }
-        else
-        {
-            if (GUILayout.Button("Get data", GUILayout.Height(30))) 
-            {
-                myTarget.InitTableList();
-                myTarget.UpdateAllData();
-            }
-        }
+        GetAllDataButton();
 
         if (myTarget.tables == null) { return; }
 
         GUILayout.Space(10);
 
-        PositionDropdown();
-        AttackDropdown();
-        DeathDropdown();
-        HitDropdown();
-        KillDropdown();
+        TableDropdown(myTarget.positionTable, ref positionDropdown, "Position", myTarget.UpdatePositionData);
+        TableDropdown(myTarget.attackTable, ref attackDropdown, "Attack", myTarget.UpdateAttackData);
+        TableDropdown(myTarget.deathTable, ref deathDropdown, "Death", myTarget.UpdateDeathData);
+        TableDropdown(myTarget.hitTable, ref hitDropdown, "Hit", myTarget.UpdateHitData);
+        TableDropdown(myTarget.killTable, ref killDropdown, "Kill", myTarget.UpdateKillData);
 
         GUILayout.Space(5);
 
@@ -55,107 +44,39 @@ public class VisualizationEditor : Editor
         }
     }
 
-    void PositionDropdown()
+    void GetAllDataButton()
     {
-        positionDropdown = EditorGUILayout.Foldout(positionDropdown, "Position data");
-        if (positionDropdown)
+        if (myTarget.tables != null)
         {
-            GUILayout.Space(5);
-
-            if (GUILayout.Button("Retrieve position data")) { myTarget.UpdatePositionData(); }
-
-            GUILayout.Space(5);
-
-            myTarget.positionTable.showHeatmapData = EditorGUILayout.Toggle("Show Heatmap Data", myTarget.positionTable.showHeatmapData);
-            myTarget.positionTable.showRawData = EditorGUILayout.Toggle("Show Raw Data", myTarget.positionTable.showRawData);
-
-            myTarget.positionTable.gradient = EditorGUILayout.GradientField("Gradient", myTarget.positionTable.gradient);
-
-            myTarget.positionTable.resolution = EditorGUILayout.Slider("Heatmap Resolution", myTarget.positionTable.resolution, 0.5f, 10.0f);
-
-            GUILayout.Space(10);
+            if (GUILayout.Button("Update all data", GUILayout.Height(30))) { myTarget.UpdateAllData(); }
+        }
+        else
+        {
+            if (GUILayout.Button("Get data", GUILayout.Height(30)))
+            {
+                myTarget.InitTableList();
+                myTarget.UpdateAllData();
+            }
         }
     }
-    void AttackDropdown()
+
+    void TableDropdown(VisualizationLogic.TableData tableToRender, ref bool dropdown, string tableName, System.Action functionToCall)
     {
-        attackDropdown = EditorGUILayout.Foldout(attackDropdown, "Attack data");
-        if (attackDropdown)
+        dropdown = EditorGUILayout.Foldout(dropdown, $"{tableName} Data");
+        if (dropdown)
         {
             GUILayout.Space(5);
 
-            if (GUILayout.Button("Retrieve attack data")) { myTarget.UpdateAttackData(); }
+            if (GUILayout.Button($"Retrieve {tableName.ToLower()} data")) { functionToCall.Invoke(); }
 
             GUILayout.Space(5);
 
-            myTarget.attackTable.showHeatmapData = EditorGUILayout.Toggle("Show Heatmap Data", myTarget.attackTable.showHeatmapData);
-            myTarget.attackTable.showRawData = EditorGUILayout.Toggle("Show Raw Data", myTarget.attackTable.showRawData);
+            tableToRender.showHeatmapData = EditorGUILayout.Toggle("Show Heatmap Data", tableToRender.showHeatmapData);
+            tableToRender.showRawData = EditorGUILayout.Toggle("Show Raw Data", tableToRender.showRawData);
 
-            myTarget.attackTable.gradient = EditorGUILayout.GradientField("Gradient", myTarget.attackTable.gradient);
+            tableToRender.gradient = EditorGUILayout.GradientField("Gradient", tableToRender.gradient);
 
-            myTarget.attackTable.resolution = EditorGUILayout.FloatField("Heatmap resolution", myTarget.attackTable.resolution);
-
-            GUILayout.Space(10);
-        }
-    }
-    void DeathDropdown()
-    {
-        deathDropdown = EditorGUILayout.Foldout(deathDropdown, "Death data");
-        if (deathDropdown)
-        {
-            GUILayout.Space(5);
-
-            if (GUILayout.Button("Retrieve death data")) { myTarget.UpdateDeathData(); }
-
-            GUILayout.Space(5);
-
-            myTarget.deathTable.showHeatmapData = EditorGUILayout.Toggle("Show Heatmap Data", myTarget.deathTable.showHeatmapData);
-            myTarget.deathTable.showRawData = EditorGUILayout.Toggle("Show Raw Data", myTarget.deathTable.showRawData);
-
-            myTarget.deathTable.gradient = EditorGUILayout.GradientField("Gradient", myTarget.deathTable.gradient);
-
-            myTarget.deathTable.resolution = EditorGUILayout.FloatField("Heatmap resolution", myTarget.deathTable.resolution);
-
-            GUILayout.Space(10);
-        }
-    }
-    void HitDropdown()
-    {
-        hitDropdown = EditorGUILayout.Foldout(hitDropdown, "Hit data");
-        if (hitDropdown)
-        {
-            GUILayout.Space(5);
-
-            if (GUILayout.Button("Retrieve hit data")) { myTarget.UpdateHitData(); }
-
-            GUILayout.Space(5);
-
-            myTarget.hitTable.showHeatmapData = EditorGUILayout.Toggle("Show Heatmap Data", myTarget.hitTable.showHeatmapData);
-            myTarget.hitTable.showRawData = EditorGUILayout.Toggle("Show Raw Data", myTarget.hitTable.showRawData);
-
-            myTarget.hitTable.gradient = EditorGUILayout.GradientField("Gradient", myTarget.hitTable.gradient);
-
-            myTarget.hitTable.resolution = EditorGUILayout.FloatField("Heatmap resolution", myTarget.hitTable.resolution);
-
-            GUILayout.Space(10);
-        }
-    }
-    void KillDropdown()
-    {
-        killDropdown = EditorGUILayout.Foldout(killDropdown, "Kill data");
-        if (killDropdown)
-        {
-            GUILayout.Space(5);
-
-            if (GUILayout.Button("Retrieve kill data")) { myTarget.UpdateKillData(); }
-
-            GUILayout.Space(5);
-
-            myTarget.killTable.showHeatmapData = EditorGUILayout.Toggle("Show Heatmap Data", myTarget.killTable.showHeatmapData);
-            myTarget.killTable.showRawData = EditorGUILayout.Toggle("Show Raw Data", myTarget.killTable.showRawData);
-
-            myTarget.killTable.gradient = EditorGUILayout.GradientField("Gradient", myTarget.killTable.gradient);
-
-            myTarget.killTable.resolution = EditorGUILayout.FloatField("Heatmap resolution", myTarget.killTable.resolution);
+            tableToRender.resolution = EditorGUILayout.Slider("Heatmap Resolution", tableToRender.resolution, 0.5f, 10.0f);
 
             GUILayout.Space(10);
         }
