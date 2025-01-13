@@ -9,55 +9,117 @@ using UnityEngine.Networking;
 
 public class VisualizationLogic : MonoBehaviour
 {
-    public bool showPosData = false;
-    public bool showTreatedData = false;
-    public bool showRawData = false;
+    public class TableData
+    {
+        public List<Vector3> data { get; private set; }
+        public Dictionary<Vector3Int, int> grid;
 
-    List<Vector3> posData = new List<Vector3>();
-    List<Vector3> attackData = new List<Vector3>();
-    List<Vector3> deathData = new List<Vector3>();
-    List<Vector3> hitData = new List<Vector3>();
-    List<Vector3> killData = new List<Vector3>();
+        public bool showHeatmapData;
+        public bool showRawData;
+        public Gradient gradient;
+        public float resolution;
 
-    Dictionary<Vector3Int, int> positionsDictionary = new Dictionary<Vector3Int, int>();
+        public TableData()
+        {
+            data = new List<Vector3>();
+            grid = new Dictionary<Vector3Int, int>();
+            showHeatmapData = false;
+            showRawData = false;
+            resolution = 1.0f;
+            gradient = new Gradient()
+            {
+                colorKeys = new GradientColorKey[5] {
+                    // Add your colour and specify the stop point
+                    new GradientColorKey(new Color(0, 0.1666665f, 1), 0),
+                    new GradientColorKey(new Color(0, 1, 0.8833334f), 0.25f),
+                    new GradientColorKey(new Color(0.08333325f, 1, 0), 0.5f),
+                    new GradientColorKey(new Color(1, 0.9583334f, 0), 0.75f),
+                    new GradientColorKey(new Color(1, 0, 0), 1)
+                },
+                alphaKeys = new GradientAlphaKey[2] {
+                    // This sets the alpha to 1 at both ends of the gradient
+                    new GradientAlphaKey(1, 0),
+                    new GradientAlphaKey(1, 1)
+    }
+            };
+        }
 
-    public float cellSize = 1f;
+        public bool UpdateData(string newDataJson)
+        {
+            data.Clear();
 
-    public Gradient colorGradient = new Gradient();
+            string formattedJson = newDataJson.TrimStart('[').TrimEnd(']');
+
+            string[] jsonOBJs = formattedJson.Split(new[] { "}," }, StringSplitOptions.None);
+
+            foreach (string jsonOBJ in jsonOBJs)
+            {
+                try
+                {
+                    string fixedJson = jsonOBJ.Trim();
+                    if (!fixedJson.EndsWith("}")) fixedJson += "}";
+
+                    Vector3 pos = JsonUtility.FromJson<Vector3>(fixedJson);
+                    data.Add(pos);
+
+                    //Debug.Log(pos);
+                }
+                catch (ArgumentException e)
+                {
+                    Debug.LogError($"Failed: {jsonOBJ}\nException: {e.Message}");
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
+
+    public TableData positionTable = new TableData();
+    public TableData attackTable = new TableData();
+    public TableData deathTable = new TableData();
+    public TableData hitTable = new TableData();
+    public TableData killTable = new TableData();
+
+    public List<TableData> tables;
+
+    public void InitTableList()
+    {
+        tables = new List<TableData> { positionTable, attackTable, deathTable, hitTable, killTable };
+    }
 
     #region Data retrieval
 
     public void UpdateAllData()
     {
-        StartCoroutine(RetrieveData("positionDownloader", posData));
-        StartCoroutine(RetrieveData("attackDownloader", attackData));
-        StartCoroutine(RetrieveData("deathDownloader", deathData));
-        StartCoroutine(RetrieveData("hitDownloader", hitData));
-        StartCoroutine(RetrieveData("killDownloader", killData));
+        StartCoroutine(RetrieveData("positionDownloader", positionTable));
+        StartCoroutine(RetrieveData("attackDownloader", attackTable));
+        StartCoroutine(RetrieveData("deathDownloader", deathTable));
+        StartCoroutine(RetrieveData("hitDownloader", hitTable));
+        StartCoroutine(RetrieveData("killDownloader", killTable));
     }
 
     public void UpdatePositionData()
     {
-        StartCoroutine(RetrieveData("positionDownloader", posData));
+        StartCoroutine(RetrieveData("positionDownloader", positionTable));
     }
     public void UpdateAttackData()
     {
-        StartCoroutine(RetrieveData("attackDownloader", attackData));
+        StartCoroutine(RetrieveData("attackDownloader", attackTable));
     }
     public void UpdateDeathData()
     {
-        StartCoroutine(RetrieveData("deathDownloader", deathData));
+        StartCoroutine(RetrieveData("deathDownloader", deathTable));
     }
     public void UpdateHitData()
     {
-        StartCoroutine(RetrieveData("hitDownloader", hitData));
+        StartCoroutine(RetrieveData("hitDownloader", hitTable));
     }
     public void UpdateKillData()
     {
-        StartCoroutine(RetrieveData("killDownloader", killData));
+        StartCoroutine(RetrieveData("killDownloader", killTable));
     }
 
-    public IEnumerator RetrieveData(string fileName, List<Vector3> data)
+    public IEnumerator RetrieveData(string fileName, TableData tableToFill)
     {
         WWWForm form = new WWWForm();
 
@@ -71,84 +133,60 @@ public class VisualizationLogic : MonoBehaviour
         else
         {
             //Debug.Log($"Succcess: {www.downloadHandler.text}");
-            StoreData(www.downloadHandler.text, data);
+            tableToFill.UpdateData(www.downloadHandler.text);
         }
         yield return null;
-    }
-
-    private void StoreData(string json, List<Vector3> data)
-    {
-        data.Clear();
-
-        string formattedJson = json.TrimStart('[').TrimEnd(']');
-
-        string[] jsonOBJs = formattedJson.Split(new[] { "}," }, StringSplitOptions.None);
-
-        foreach (string jsonOBJ in jsonOBJs)
-        {
-            try
-            {
-                string fixedJson = jsonOBJ.Trim();
-                if (!fixedJson.EndsWith("}")) fixedJson += "}";
-
-                Vector3 pos = JsonUtility.FromJson<Vector3>(fixedJson);
-                data.Add(pos);
-
-                //Debug.Log(pos);
-            }
-            catch (ArgumentException e)
-            {
-                Debug.LogError($"Failed: {jsonOBJ}\nException: {e.Message}");
-            }
-        }
     }
 
     #endregion
 
     private void OnDrawGizmos()
     {
-        if (showPosData)
+        if (tables == null) { return; }
+
+        foreach (var table in tables)
         {
-            if (showTreatedData)
+            if (table.showHeatmapData)
             {
-                positionsDictionary.Clear();
+                table.grid.Clear();
 
-                foreach (var pos in posData)
+                foreach (var pos in table.data)
                 {
-                    var gridPos = GetGridPos(pos);
+                    var gridPos = GetGridPos(pos, table.resolution);
 
-                    if (positionsDictionary.ContainsKey(gridPos))
+                    if (table.grid.ContainsKey(gridPos))
                     {
-                        positionsDictionary[gridPos]++;
+                        table.grid[gridPos]++;
                     }
                     else
                     {
-                        positionsDictionary.Add(gridPos, 1);
+                        table.grid.Add(gridPos, 1);
                     }
                 }
 
-                foreach (var item in positionsDictionary)
+                int maxInstance = table.grid.Values.Max();
+                foreach (var item in table.grid)
                 {
-                    Gizmos.color = GetColor(item.Value);
+                    Gizmos.color = GetColor(item.Value, maxInstance, table.gradient);
 
-                    if (cellSize > .5f)
-                        Gizmos.DrawCube(GetWorldPos(item.Key), Vector3.one * cellSize);
+                    if (table.resolution > .5f)
+                        Gizmos.DrawCube(GetWorldPos(item.Key, table.resolution), Vector3.one * table.resolution);
                 }
             }
 
-            if (showRawData)
+            if (table.showRawData)
             {
                 Gizmos.color = Color.white;
 
-                foreach (var item in posData)
+                foreach (var position in table.data)
                 {
-                    Gizmos.DrawSphere(item, 0.1f);
+                    Gizmos.DrawSphere(position, 0.1f);
                 }
             }
         }
     }
 
-    Vector3Int GetGridPos(Vector3 worldPosition)
+    Vector3Int GetGridPos(Vector3 worldPosition, float cellSize)
     {
         Vector3 relativePosition = worldPosition;
 
@@ -161,7 +199,7 @@ public class VisualizationLogic : MonoBehaviour
         return gridIndex;
     }
 
-    Vector3 GetWorldPos(Vector3Int gridPos)
+    Vector3 GetWorldPos(Vector3Int gridPos, float cellSize)
     {
         return new Vector3(
             gridPos.x * cellSize + cellSize / 2f,
@@ -170,9 +208,9 @@ public class VisualizationLogic : MonoBehaviour
         );
     }
 
-    Color GetColor(int instances)
+    Color GetColor(int instances, int highestInstance, Gradient colorGradient)
     {
-        return colorGradient.Evaluate((float)instances / positionsDictionary.Values.Max());
+        return colorGradient.Evaluate((float)instances / highestInstance);
     }
 }
 #endif

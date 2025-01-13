@@ -7,85 +7,158 @@ using UnityEditor;
 public class VisualizationEditor : Editor
 {
     VisualizationLogic myTarget;
-    bool showButtonsDropdown = false;
 
+    bool positionDropdown = false;
+    bool attackDropdown = false;
+    bool deathDropdown = false;
+    bool hitDropdown = false;
+    bool killDropdown = false;
+    
     public override void OnInspectorGUI()
     {
         myTarget = (VisualizationLogic)target;
 
-        //ShowSerializationTypes();
+        GUILayout.Space(10);
 
-        //GUILayout.Space(10);
-
-        //ShowClassSerialization();
-
-        //GUILayout.Space(10);
-
-        //ShowPrintButtons();
-
-        EditorGUILayout.LabelField("Buttons", EditorStyles.boldLabel);
-
-        if (GUILayout.Button("Update Data"))
+        if (myTarget.tables != null)
         {
-            myTarget.UpdatePositionData();
+            if (GUILayout.Button("Update all data", GUILayout.Height(30))) { myTarget.UpdateAllData(); }
         }
-
-        showButtonsDropdown = EditorGUILayout.Foldout(showButtonsDropdown, "Update individual fields");
-
-        if (showButtonsDropdown)
+        else
         {
-            //Print one
-            if (GUILayout.Button("Retrieve position data"))
+            if (GUILayout.Button("Get data", GUILayout.Height(30))) 
             {
-                myTarget.UpdatePositionData();
-            }
-
-            if (GUILayout.Button("Retrieve attacks data"))
-            {
-                myTarget.UpdateAttackData();
-            }
-
-            if (GUILayout.Button("Retrieve deaths data"))
-            {
-                myTarget.UpdateDeathData();
-            }
-
-            if (GUILayout.Button("Retrieve hits data"))
-            {
-                myTarget.UpdateHitData();
-            }
-
-            if (GUILayout.Button("Retrieve kills data"))
-            {
-                myTarget.UpdateKillData();
+                myTarget.InitTableList();
+                myTarget.UpdateAllData();
             }
         }
 
-        EditorGUI.BeginChangeCheck();
+        if (myTarget.tables == null) { return; }
 
-        bool targetValue1 = EditorGUILayout.Toggle("Show Position Data", myTarget.showPosData);
-        bool targetValue2 = EditorGUILayout.Toggle("Show Treated Data", myTarget.showTreatedData);
-        bool targetValue3 = EditorGUILayout.Toggle("Show Raw Data", myTarget.showRawData);
+        GUILayout.Space(10);
 
-        if (EditorGUI.EndChangeCheck())
+        PositionDropdown();
+        AttackDropdown();
+        DeathDropdown();
+        HitDropdown();
+        KillDropdown();
+
+        GUILayout.Space(5);
+
+        if (GUILayout.Button("Collapse all", GUILayout.Width(75))) 
         {
-            if (myTarget.showPosData != targetValue1)
-            {
-                myTarget.showPosData = targetValue1;
-            }
-            else if (myTarget.showTreatedData != targetValue2)
-            {
-                myTarget.showTreatedData = targetValue2;
-            }
-            else if (myTarget.showRawData != targetValue3)
-            {
-                myTarget.showRawData = targetValue3;
-            }
+            positionDropdown = false;
+            attackDropdown = false;
+            deathDropdown = false;
+            hitDropdown = false;
+            killDropdown = false;
         }
+    }
 
-        myTarget.cellSize = EditorGUILayout.FloatField("Cell Size", myTarget.cellSize);
+    void PositionDropdown()
+    {
+        positionDropdown = EditorGUILayout.Foldout(positionDropdown, "Position data");
+        if (positionDropdown)
+        {
+            GUILayout.Space(5);
 
-        myTarget.colorGradient = EditorGUILayout.GradientField("Gradient", myTarget.colorGradient);
+            if (GUILayout.Button("Retrieve position data")) { myTarget.UpdatePositionData(); }
+
+            GUILayout.Space(5);
+
+            myTarget.positionTable.showHeatmapData = EditorGUILayout.Toggle("Show Heatmap Data", myTarget.positionTable.showHeatmapData);
+            myTarget.positionTable.showRawData = EditorGUILayout.Toggle("Show Raw Data", myTarget.positionTable.showRawData);
+
+            myTarget.positionTable.gradient = EditorGUILayout.GradientField("Gradient", myTarget.positionTable.gradient);
+
+            myTarget.positionTable.resolution = EditorGUILayout.FloatField("Heatmap resolution", myTarget.positionTable.resolution);
+
+            GUILayout.Space(10);
+        }
+    }
+    void AttackDropdown()
+    {
+        attackDropdown = EditorGUILayout.Foldout(attackDropdown, "Attack data");
+        if (attackDropdown)
+        {
+            GUILayout.Space(5);
+
+            if (GUILayout.Button("Retrieve attack data")) { myTarget.UpdateAttackData(); }
+
+            GUILayout.Space(5);
+
+            myTarget.attackTable.showHeatmapData = EditorGUILayout.Toggle("Show Heatmap Data", myTarget.attackTable.showHeatmapData);
+            myTarget.attackTable.showRawData = EditorGUILayout.Toggle("Show Raw Data", myTarget.attackTable.showRawData);
+
+            myTarget.attackTable.gradient = EditorGUILayout.GradientField("Gradient", myTarget.attackTable.gradient);
+
+            myTarget.attackTable.resolution = EditorGUILayout.FloatField("Heatmap resolution", myTarget.attackTable.resolution);
+
+            GUILayout.Space(10);
+        }
+    }
+    void DeathDropdown()
+    {
+        deathDropdown = EditorGUILayout.Foldout(deathDropdown, "Death data");
+        if (deathDropdown)
+        {
+            GUILayout.Space(5);
+
+            if (GUILayout.Button("Retrieve death data")) { myTarget.UpdateDeathData(); }
+
+            GUILayout.Space(5);
+
+            myTarget.deathTable.showHeatmapData = EditorGUILayout.Toggle("Show Heatmap Data", myTarget.deathTable.showHeatmapData);
+            myTarget.deathTable.showRawData = EditorGUILayout.Toggle("Show Raw Data", myTarget.deathTable.showRawData);
+
+            myTarget.deathTable.gradient = EditorGUILayout.GradientField("Gradient", myTarget.deathTable.gradient);
+
+            myTarget.deathTable.resolution = EditorGUILayout.FloatField("Heatmap resolution", myTarget.deathTable.resolution);
+
+            GUILayout.Space(10);
+        }
+    }
+    void HitDropdown()
+    {
+        hitDropdown = EditorGUILayout.Foldout(hitDropdown, "Hit data");
+        if (hitDropdown)
+        {
+            GUILayout.Space(5);
+
+            if (GUILayout.Button("Retrieve hit data")) { myTarget.UpdateHitData(); }
+
+            GUILayout.Space(5);
+
+            myTarget.hitTable.showHeatmapData = EditorGUILayout.Toggle("Show Heatmap Data", myTarget.hitTable.showHeatmapData);
+            myTarget.hitTable.showRawData = EditorGUILayout.Toggle("Show Raw Data", myTarget.hitTable.showRawData);
+
+            myTarget.hitTable.gradient = EditorGUILayout.GradientField("Gradient", myTarget.hitTable.gradient);
+
+            myTarget.hitTable.resolution = EditorGUILayout.FloatField("Heatmap resolution", myTarget.hitTable.resolution);
+
+            GUILayout.Space(10);
+        }
+    }
+    void KillDropdown()
+    {
+        killDropdown = EditorGUILayout.Foldout(killDropdown, "Kill data");
+        if (killDropdown)
+        {
+            GUILayout.Space(5);
+
+            if (GUILayout.Button("Retrieve kill data")) { myTarget.UpdateKillData(); }
+
+            GUILayout.Space(5);
+
+            myTarget.killTable.showHeatmapData = EditorGUILayout.Toggle("Show Heatmap Data", myTarget.killTable.showHeatmapData);
+            myTarget.killTable.showRawData = EditorGUILayout.Toggle("Show Raw Data", myTarget.killTable.showRawData);
+
+            myTarget.killTable.gradient = EditorGUILayout.GradientField("Gradient", myTarget.killTable.gradient);
+
+            myTarget.killTable.resolution = EditorGUILayout.FloatField("Heatmap resolution", myTarget.killTable.resolution);
+
+            GUILayout.Space(10);
+        }
     }
 }
 
