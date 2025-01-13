@@ -140,6 +140,30 @@ public class VisualizationLogic : MonoBehaviour
 
     #endregion
 
+    public void ResetUI()
+    {
+        foreach (var table in tables)
+        {
+            table.showHeatmapData = false;
+            table.showRawData = false;
+            table.resolution = 1.0f;
+            table.gradient = new Gradient()
+            {
+                colorKeys = new GradientColorKey[5] {
+                    new GradientColorKey(new Color(0, 0.1666665f, 1), 0),
+                    new GradientColorKey(new Color(0, 1, 0.8833334f), 0.25f),
+                    new GradientColorKey(new Color(0.08333325f, 1, 0), 0.5f),
+                    new GradientColorKey(new Color(1, 0.9583334f, 0), 0.75f),
+                    new GradientColorKey(new Color(1, 0, 0), 1)
+                },
+                alphaKeys = new GradientAlphaKey[2] {
+                    new GradientAlphaKey(1, 0),
+                    new GradientAlphaKey(1, 1)
+    }
+            };
+        }
+    }
+
     private void OnDrawGizmos()
     {
         if (tables == null) { return; }

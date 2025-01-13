@@ -32,7 +32,7 @@ public class VisualizationEditor : Editor
         TableDropdown(myTarget.hitTable, ref hitDropdown, "Hit", myTarget.UpdateHitData);
         TableDropdown(myTarget.killTable, ref killDropdown, "Kill", myTarget.UpdateKillData);
 
-        GUILayout.Space(5);
+        GUILayout.Space(3);
 
         if (GUILayout.Button("Collapse all", GUILayout.Width(75))) 
         {
@@ -41,6 +41,10 @@ public class VisualizationEditor : Editor
             deathDropdown = false;
             hitDropdown = false;
             killDropdown = false;
+        }
+        if (GUILayout.Button("Reset All", GUILayout.Width(75)))
+        {
+            myTarget.ResetUI();
         }
     }
 
