@@ -71,7 +71,7 @@ public class VisualizationEditor : Editor
 
             myTarget.positionTable.gradient = EditorGUILayout.GradientField("Gradient", myTarget.positionTable.gradient);
 
-            myTarget.positionTable.resolution = EditorGUILayout.FloatField("Heatmap resolution", myTarget.positionTable.resolution);
+            myTarget.positionTable.resolution = EditorGUILayout.Slider("Heatmap Resolution", myTarget.positionTable.resolution, 0.5f, 10.0f);
 
             GUILayout.Space(10);
         }

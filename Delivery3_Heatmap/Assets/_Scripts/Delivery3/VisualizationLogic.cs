@@ -169,7 +169,7 @@ public class VisualizationLogic : MonoBehaviour
                 {
                     Gizmos.color = GetColor(item.Value, maxInstance, table.gradient);
 
-                    if (table.resolution > .5f)
+                    if (table.resolution >= .5f)
                         Gizmos.DrawCube(GetWorldPos(item.Key, table.resolution), Vector3.one * table.resolution);
                 }
             }
